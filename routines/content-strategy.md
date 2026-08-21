@@ -41,9 +41,13 @@ Daily, 08:00 IST (runs after morning-research, which finishes around 07:15-07:30
 
 6. For each selected idea:
    - Change Status from IDEA to RESEARCH
-   - Set Scheduled Time to a realistic target date (assume roughly
-     2-3 days from today for a Short/Reel, 5-7 days for a Long-form,
-     accounting for script + production + QC time)
+   - - Set Scheduled Time to a realistic target date (assume roughly
+  2-3 days from today for a Short/Reel, 5-7 days for a Long-form,
+  accounting for script + production + QC time). This must be written
+  directly into the Calendar record's "Scheduled Time" field via the
+  Airtable update — do not merely state the date in the run log,
+  the field itself must be populated.
+  
    - Add a one-line note explaining why this idea was prioritized
 
 7. Write a run summary appended to the Notion "Daily Ops Log," using the
