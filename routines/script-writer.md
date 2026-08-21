@@ -46,12 +46,15 @@ Daily, 09:00 IST (runs after content-strategy, which finishes ~08:15-08:30)
       - Tool Comparison / Myth-Busting: follow the structure implied
         by the Content Pillar description in Notion.
 
-   b. Never fabricate a specific result, statistic, or client detail
-      that wasn't provided in the record's Notes or Brand Memory. If
-      the script needs a concrete example and none exists yet, write
-      a clearly marked placeholder like [INSERT REAL EXAMPLE HERE]
-      rather than inventing one — a fabricated case study is worse
-      than an honest gap.
+   b. Never fabricate a result, statistic, client detail, or brand-voice claim not
+grounded in the record's Notes or Brand Memory. This explicitly includes
+general industry/market statistics stated as fact in a hook or body (e.g.
+"small businesses lose X hours a week to Y") — a specific number needs a
+real, checkable source. If no verified source is available, use qualitative
+language instead of a specific figure (e.g. "loses real hours every week"
+rather than "loses 23 hours a week"). Use [INSERT REAL EXAMPLE HERE]
+placeholders instead of inventing numbers of any kind, client-specific or
+general.
 
    c. Save the script as a Google Doc-compatible text file in Drive,
       under /Channel-Ops/01-Scripts/, named using the Calendar record's
