@@ -35,13 +35,45 @@ def main(argv: list[str] | None = None) -> int:
     dry_run_p.add_argument("--max-cycles", type=int, default=25)
     yt_p = sub.add_parser("youtube-dry-run", help="Priority 3A TEST 1: dry-run publish of one record")
     yt_p.add_argument("--record", type=Path, default=DEFAULT_YOUTUBE_RECORD)
+    sub.add_parser("youtube-auth-check", help="Phase 6: verify real OAuth credentials work, no upload")
     args = parser.parse_args(argv)
 
     if args.command == "dry-run":
         return _dry_run(args.snapshot, args.max_cycles)
     if args.command == "youtube-dry-run":
         return _youtube_dry_run(args.record)
+    if args.command == "youtube-auth-check":
+        return _youtube_auth_check()
     return 1
+
+
+def _youtube_auth_check() -> int:
+    """Requires YOUTUBE_CLIENT_ID/YOUTUBE_CLIENT_SECRET/YOUTUBE_REFRESH_TOKEN
+    in the environment and google-api-python-client installed (see .venv/).
+    Never prints a credential value."""
+    from orchestrator.publishing.youtube_adapter import MissingCredentialsError, credentials_from_env
+
+    print("=== YOUTUBE AUTH CHECK (no upload) ===")
+    try:
+        credentials = credentials_from_env()
+    except MissingCredentialsError as exc:
+        print(f"AUTHENTICATION TEST: FAIL\n  {exc}")
+        return 1
+
+    try:
+        from orchestrator.publishing.google_client import verify_authentication
+    except ImportError as exc:
+        print(f"AUTHENTICATION TEST: FAIL\n  google-api-python-client not installed: {exc}")
+        return 1
+
+    result = verify_authentication(credentials)
+    if result["status"] == "PASS":
+        print("AUTHENTICATION TEST: PASS")
+        print(f"  channel: {result.get('channel_title')} ({result.get('channel_id')})")
+    else:
+        print(f"AUTHENTICATION TEST: FAIL\n  {result.get('error')}")
+    print("\nNo token value was printed at any point.")
+    return 0 if result["status"] == "PASS" else 1
 
 
 def _youtube_dry_run(record_path: Path) -> int:

@@ -1,46 +1,89 @@
-# Setting up real YouTube publishing (human-controlled, out of scope for this build)
+# Setting up real YouTube publishing
 
-Nothing in this repo can do these steps for you -- they require your
-Google account, a browser, and business decisions (which channel,
-what branding). This is exactly the boundary the Priority 3A brief
-draws between what Claude can build and what stays human-controlled.
+## Current state (as of 2026-08-29)
 
-1. **Google Cloud project.** Create one (or reuse an existing one) at
-   console.cloud.google.com. Enable "YouTube Data API v3" for it.
-2. **OAuth consent screen.** Configure it for the project. It starts in
-   **Testing** mode -- fine for the private/unlisted manual test this
-   phase targets, but refresh tokens it issues expire after 7 days (see
-   docs/youtube/API_RESEARCH.md). Moving to Production for unattended
-   use later requires a Google verification review for the
-   `youtube.upload` scope.
-3. **OAuth client.** Create an OAuth 2.0 Client ID (Desktop app type is
-   simplest for a one-time manual authorization). Download the
-   client_id/client_secret.
-4. **Channel verification.** Verify the Systemary channel by phone in
-   YouTube Studio -- required before `thumbnails.set` will work.
-5. **Run the OAuth consent flow once**, manually, to mint a refresh
-   token (e.g. `google-auth-oauthlib`'s installed-app flow, run
-   locally on your machine -- not something this session can do, since
-   it requires an interactive browser login as you).
-6. **Store the three secrets as environment variables** wherever this
-   orchestrator actually runs -- `YOUTUBE_CLIENT_ID`,
-   `YOUTUBE_CLIENT_SECRET`, `YOUTUBE_REFRESH_TOKEN`. Never in a file in
-   this repo. `.gitignore` already blocks common credential filename
-   patterns (`*token*.json`, `client_secret*.json`, `.env*`, `.state/`)
-   as a backstop, but the actual rule is: these three values only ever
-   live in a secrets manager or environment, never on disk in this repo.
-7. **Wire a real client.** `YouTubeAdapter` takes a `real_client_factory`
-   -- production code supplies a thin wrapper around
-   `google-api-python-client`'s `build("youtube", "v3", credentials=...)`
-   that implements the three methods `RealYouTubeClient` declares
-   (`insert_video`, `set_thumbnail`, `update_video`). Nothing in this
-   package imports that library itself, so it isn't a dependency of the
-   orchestrator's core -- only of whatever supplies the real factory.
+Done, by the account owner, outside this repo:
+- [x] Google Cloud project: "Systemary YouTube" (`systemary-youtube`)
+- [x] YouTube Data API v3: enabled
+- [x] OAuth consent screen: created, audience External
+- [x] OAuth client: "Systemary YouTube Automation", type Desktop, JSON downloaded
 
-Once all seven are done, `orchestrator/publishing/publishing_agent.py`
-and `youtube_adapter.py` are already built to use them (`dry_run=False`
-+ `credentials_from_env` + a real `real_client_factory`) -- nothing in
-those two files needs to change for that to work. What's still owed
-before that path is exercised for real: TEST 2 (private/unlisted live
-upload) from the Priority 3A brief, which is currently blocked exactly
-here -- see the main report.
+Done, by Claude, in this repo:
+- [x] `orchestrator/publishing/youtube_adapter.py` / `publishing_agent.py` /
+      `idempotency.py` — the dry-run-capable adapter, eligibility gate,
+      idempotency store (Priority 3A first pass)
+- [x] `google-api-python-client`, `google-auth-oauthlib`, `google-auth`
+      installed in a project-local venv (`.venv/`, gitignored) — the
+      system Python's `cryptography` package was broken (missing native
+      `_cffi_backend`), so these live in an isolated venv instead of
+      touching system packages
+- [x] `orchestrator/publishing/google_client.py` — the real
+      `RealYouTubeClient` implementation (`GoogleYouTubeClient`), the
+      only module in this codebase that imports
+      `google-api-python-client`. Wires directly into the existing
+      adapter via `real_client_factory` with no changes needed to
+      `youtube_adapter.py` or `publishing_agent.py`.
+- [x] `scripts/mint_youtube_refresh_token.py` — a script that mints a
+      refresh token via the OAuth loopback flow. **Must run on your own
+      machine, not in a Claude Code remote session** — see "Why this
+      step can't run here" below.
+- [x] `python3 -m orchestrator.cli youtube-auth-check` — verifies real
+      credentials work (Phase 6) without uploading anything
+
+**Not done — blocks TEST 2 (private/unlisted live upload):**
+- [ ] Refresh token minted
+- [ ] `YOUTUBE_CLIENT_ID` / `YOUTUBE_CLIENT_SECRET` / `YOUTUBE_REFRESH_TOKEN`
+      set as environment variables wherever this code actually runs
+- [ ] Channel phone verification (needed for thumbnails only, not for
+      TEST 1/TEST 2 themselves)
+- [ ] A harmless test video file for TEST 2
+
+## Why the refresh-token step can't run in this session
+
+This Claude Code session runs in an isolated cloud container — it has
+no access to your Mac's filesystem, and more importantly, a Desktop
+OAuth client's authorization redirect goes to `http://localhost:<port>`,
+which only a browser on the *same machine* as the listening process can
+reach. Since your browser is on your Mac, the process receiving that
+redirect has to run on your Mac too. There's no way around this that
+doesn't compromise the flow — it's how OAuth's loopback redirect is
+designed to work, not a gap in this build.
+
+## What you need to do
+
+1. On your Mac, in a terminal:
+   ```
+   python3 -m venv .venv && source .venv/bin/activate
+   pip install google-auth-oauthlib
+   python3 scripts/mint_youtube_refresh_token.py --client-secret ~/Downloads/<your_downloaded_file>.json
+   ```
+   (pull this repo, or just copy `scripts/mint_youtube_refresh_token.py`
+   to your Mac — it has no dependency on the rest of the repo.)
+2. Your browser opens to Google's consent screen. Log in as the account
+   that manages the Systemary channel and approve. If you see "Google
+   hasn't verified this app" — expected, since the consent screen is in
+   Testing mode. Click **Advanced**, then **Go to Systemary YouTube
+   Automation (unsafe)**. This warning is normal for your own
+   self-authorized project; nothing is actually wrong.
+3. The script prints your `client_id` and a new `refresh_token` to your
+   own terminal. Your `client_secret` is the `client_secret` field in
+   the JSON file you already downloaded.
+4. Set all three as environment variables in this Claude Code
+   environment's own configuration (its settings, outside this chat —
+   the same place environment variables and setup scripts for this
+   environment are configured; see
+   https://code.claude.com/docs/en/claude-code-on-the-web) — not by
+   pasting them into this conversation. A new session/container may be
+   needed for the environment to pick them up.
+5. Tell me once that's done (a confirmation, not the values) and
+   provide (or point me to) a harmless test video file. I'll pick up
+   from there: `youtube-auth-check`, then TEST 2.
+
+## Architecture (unchanged, confirmed still isolated)
+
+    ORCHESTRATOR -> PUBLISHING AGENT -> YOUTUBE ADAPTER -> YouTube API
+
+`youtube_adapter.py` still has zero import of `google-api-python-client`
+— only `google_client.py` does, and only `google_client.py` and the CLI
+import it, and only when a real (non-dry-run) call is actually being
+made. `orchestrator.py` has no YouTube-specific code anywhere in it.
