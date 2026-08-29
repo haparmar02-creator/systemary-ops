@@ -1,3 +1,13 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Credentials / secrets -- never committed, ever.
+.env
+.env.*
+*.env
+client_secret*.json
+*token*.json
+*credentials*.json
+oauth_token*.json
+.state/

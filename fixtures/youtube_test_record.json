@@ -1,0 +1,12 @@
+{
+  "id": "rec_yt_test01",
+  "status": "APPROVED",
+  "platform": "YouTube",
+  "topic": "I automated a real client's invoice reminders -- here's exactly how",
+  "content_pillar": "Build-Along",
+  "content_type": "Long-form",
+  "asset_link": "/local/test-assets/invoice-reminders-build-along.mp4",
+  "notes": "Clean QC pass (simulated). No placeholders remaining. Approved by owner 2026-08-29.",
+  "caption": "I automated a real client's invoice reminders so they stopped chasing late payments by hand. Full build-along, real client, real workflow.",
+  "thumbnail_path": null
+}
