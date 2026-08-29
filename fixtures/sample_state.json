@@ -1,0 +1,23 @@
+{
+  "as_of": "2026-08-29T12:00:00Z",
+  "objective": "Profitable audience growth for Systemary via practical AI-automation content for small businesses.",
+  "calendar": [],
+  "competitors": [],
+  "analytics": [],
+  "revenue": [],
+  "leads": [],
+  "experiments": [],
+  "approvals": [],
+  "opportunities": [
+    {
+      "id": "opp_seed01",
+      "topic": "I automated a real client's invoice reminders -- here's exactly how",
+      "pillar": "Build-Along",
+      "platform": "YouTube",
+      "content_type": "Long-form",
+      "why": "Concrete build-along matching a common small-business pain point (late payments); a competitor just posted something similar and got strong engagement",
+      "qualified": false
+    }
+  ],
+  "daily_ops_log_today": ["morning-research"]
+}

@@ -3,9 +3,15 @@
 ## Purpose
 Reviews Calendar records in SCRIPT status against a quality checklist
 before they're allowed to advance. Does not fix problems itself — it
-either advances a clean record to REVIEW, or leaves it in SCRIPT with
-specific, actionable notes on what needs fixing. This is a gate, not
-a production step.
+either advances a clean record to PRODUCTION (greenlighting filming),
+or leaves it in SCRIPT with specific, actionable notes on what needs
+fixing. This is a gate, not a production step.
+
+Note: this routine is the SCRIPT -> PRODUCTION gate in the orchestrator
+state machine (see orchestrator/state_machine.py). It does not touch
+REVIEW -- that status is reached later, by a full QC pass on the
+produced asset (see post-production-qc.md, which is the PRODUCTION ->
+REVIEW gate, and content-qc.md, the REVIEW -> AWAITING_APPROVAL gate).
 
 ## Schedule
 Every 4 hours (this one runs more often than the daily routines, since
@@ -61,14 +67,14 @@ edits produce, not to originate work on its own clock)
      the log — this is the highest-severity finding this routine can
      produce.
    - **If only placeholders remain (no fabrication, no voice/structure
-     issues)**: advance Status to REVIEW, but add a note listing
+     issues)**: advance Status to PRODUCTION, but add a note listing
      exactly which placeholders still need real content before
-     filming — advancing to REVIEW does not mean "ready to film,"
-     it means "ready for human eyes," which is accurate even with
-     open placeholders.
+     filming — advancing to PRODUCTION means the script has cleared
+     this QC gate and is ready to film, not that every placeholder is
+     filled; those are called out so whoever films it sees them first.
    - **If voice or structural issues exist**: leave Status at SCRIPT,
      list the specific issues found, do not advance.
-   - **If everything passes clean**: advance to REVIEW with a note
+   - **If everything passes clean**: advance to PRODUCTION with a note
      confirming a clean pass.
 
 6. Write a run summary to the Notion "Daily Ops Log":
@@ -77,7 +83,7 @@ edits produce, not to originate work on its own clock)
    🔥 IMPORTANT: (any fabrication findings — these are the only
    findings that belong in this section; everything else goes in
    the categories below)
-   💡 OPPORTUNITIES: (records advanced to REVIEW, and with what
+   💡 OPPORTUNITIES: (records advanced to PRODUCTION, and with what
    remaining placeholder notes)
    ✅ COMPLETED: (how many SCRIPT records reviewed)
    🎯 NEXT ACTIONS: (what needs a human decision or fix)
@@ -93,7 +99,7 @@ edits produce, not to originate work on its own clock)
 
 ## Completion criteria
 Run is complete when: all current SCRIPT records have been checked
-against all 5 criteria, each has either advanced to REVIEW (with any
+against all 5 criteria, each has either advanced to PRODUCTION (with any
 placeholder notes) or remained at SCRIPT (with specific fix notes),
 and a Daily Ops Log entry exists for this run — including runs that
 find nothing to review.

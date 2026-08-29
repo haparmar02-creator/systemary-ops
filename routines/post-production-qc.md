@@ -8,6 +8,12 @@ completeness check, not a creative or content-quality review. It does
 NOT watch, judge, or verify the actual video/audio content — that
 remains a human judgment call.
 
+Note: this routine is the PRODUCTION -> REVIEW gate in the orchestrator
+state machine (see orchestrator/state_machine.py) — mechanical
+completeness only. The broader content-quality pass (brand, copyright,
+claims, monetization alignment) that gates REVIEW -> AWAITING_APPROVAL
+is a separate routine, content-qc.md, not this one.
+
 ## Schedule
 Every 6 hours
 
@@ -53,17 +59,17 @@ Every 6 hours
      implausible**: leave Status at PRODUCTION, flag the specific
      concern (e.g. "Long-form video is only 45 seconds — confirm this
      is the correct final file") for human review.
-   - **If all checks pass**: advance Status to AWAITING_APPROVAL, with
+   - **If all checks pass**: advance Status to REVIEW, with
      a note stating this is a mechanical completeness pass only — actual
      content quality (picture, audio, whether it matches what the
-     script describes) has NOT been verified and still needs human
-     review before this is treated as ready to publish.
+     script describes) has NOT been verified. REVIEW is picked up next
+     by content-qc's full QC pass, not by a human directly.
 
 5. Write a run summary to the Notion "Daily Ops Log":
 
    ## [Date] — post-production-qc
    🔥 IMPORTANT: (missing files or implausible metadata, or "none")
-   💡 OPPORTUNITIES: (records advanced to AWAITING_APPROVAL)
+   💡 OPPORTUNITIES: (records advanced to REVIEW)
    ✅ COMPLETED: (how many PRODUCTION records checked)
    🎯 NEXT ACTIONS: (what needs a human to actually watch/review)
 
@@ -72,12 +78,12 @@ Every 6 hours
   this the same as "file existence check failed" — do not assume the
   file is fine just because a link exists.
 - Never claim to have verified video/audio content quality — this
-  routine's advancement to AWAITING_APPROVAL always means "mechanically
+  routine's advancement to REVIEW always means "mechanically
   complete," never "content confirmed good."
 
 ## Completion criteria
 Run is complete when: all current PRODUCTION records have been checked
-against all 4 criteria, each has either advanced to AWAITING_APPROVAL
+against all 4 criteria, each has either advanced to REVIEW
 (with the explicit "not content-reviewed" note) or remained at
 PRODUCTION with specific missing/implausible items listed, and a Daily
 Ops Log entry exists for this run.
